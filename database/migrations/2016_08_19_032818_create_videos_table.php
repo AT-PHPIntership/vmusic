@@ -24,8 +24,8 @@ class CreateVideosTable extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->integer('singer_id')->unsigned();
             $table->foreign('singer_id')->references('id')->on('singers')->onDelete('cascade');
-            $table->integer('album_id')->unsigned();
-            $table->foreign('album_id')->references('id')->on('albums')->onDelete('cascade');
+            $table->integer('topic_id')->unsigned();
+            $table->foreign('topic_id')->references('id')->on('topics')->onDelete('cascade');
             $table->timestamps();
         });
     }
