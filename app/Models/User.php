@@ -1,11 +1,16 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
+use Prettus\Repository\Contracts\Transformable;
+use Prettus\Repository\Traits\TransformableTrait;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements Transformable
 {
+    use TransformableTrait;
+
     protected $table = "users";
 
     /**
@@ -33,7 +38,7 @@ class User extends Authenticatable
      */
     public function role()
     {
-        return $this->hasOne('App\Role', 'role_id');
+        return $this->hasOne('App\Models\Role', 'role_id');
     }
 
     /**

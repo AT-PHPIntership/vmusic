@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
 use Validator;
+use Auth;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
+
+use App\Contracts\Repositories\UserRepository;
 
 class AuthController extends Controller
 {
@@ -23,21 +26,43 @@ class AuthController extends Controller
 
     use AuthenticatesAndRegistersUsers, ThrottlesLogins;
 
-    /**
-     * Where to redirect users after login / registration.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/';
+    protected $user;
+    protected $username = 'username';
+    protected $loginView = 'frontend/index';
+    protected $redirectAfterLogout = '/';
 
     /**
-     * Create a new authentication controller instance.
+     * User Repository.
+     *
+     * @param UserRepository $user repository
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(UserRepository $user)
     {
-        $this->middleware($this->guestMiddleware(), ['except' => 'logout']);
+        $this->user = $user;
+    }
+
+    /**
+     * Where to redirect users after login.
+     *
+     * @param \Illuminate\Http\Request $request input value
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function postLogin(Request $request)
+    {
+            $this->validate($request, [
+            'username' => 'required',
+            'password' => 'required',
+            ]);
+            if (Auth::attempt($request->only('username', 'password'), $request->has('remember'))) {
+                if (Auth::user()->role_id == config('define.admin_id')) {
+                    return redirect()->route('admin');
+                } else {
+                    return redirect()->intended();
+                }
+            }
     }
 
     /**
@@ -50,7 +75,7 @@ class AuthController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => 'required|max:255',
+            'username' => 'required|max:255',
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|min:6|confirmed',
         ]);
@@ -65,8 +90,8 @@ class AuthController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
-            'name' => $data['name'],
+        return $this->user->create([
+            'username' => $data['username'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
